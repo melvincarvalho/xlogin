@@ -1,12 +1,13 @@
 {
   "name": "xlogin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Universal login widget for Nostr and Solid",
   "main": "xlogin.js",
   "files": [
     "xlogin.js",
     "index.html",
     "README.md",
+    "SKILL.md",
     "LICENSE"
   ],
   "scripts": {
@@ -35,6 +36,7 @@
   },
   "dependencies": {
     "nip07": "*",
+    "nip98": "*",
     "solid-oidc": "^0.0.8"
   }
 }

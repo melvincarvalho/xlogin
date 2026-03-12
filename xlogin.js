@@ -63,6 +63,11 @@
     _SolidSession = mod.Session || mod.default
   })
 
+  var _nip98AuthFetch = null
+  var _nip98Ready = import('https://esm.sh/nip98').then(function (mod) {
+    _nip98AuthFetch = mod.authFetch
+  })
+
   // --- localStorage (Nostr accounts, compatible with nip07/Jumble) ---
   function loadAccounts() {
     try { return JSON.parse(localStorage.getItem('accounts')) || [] } catch (e) { return [] }
@@ -561,6 +566,23 @@
   window.xlogin.id = null
   window.xlogin.login = function () { showModal() }
   window.xlogin.logout = function () { onLogout(getUI().btn) }
+
+  /**
+   * Unified authenticated fetch.
+   * - Nostr login  → NIP-98 Authorization header via nip98
+   * - Solid login  → DPoP Authorization header via solid-oidc
+   * - Not logged in → plain fetch
+   */
+  window.xlogin.authFetch = async function (url, options) {
+    if (_type === 'nostr') {
+      await _nip98Ready
+      return _nip98AuthFetch(url, options)
+    }
+    if (_type === 'solid' && _solidSession) {
+      return _solidSession.authFetch(url, options)
+    }
+    return fetch(url, options)
+  }
 
   // --- Init ---
   async function init() {

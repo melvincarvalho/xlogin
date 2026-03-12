@@ -47,6 +47,11 @@ npm install xlogin
 window.xlogin.type   // "nostr" or "solid"
 window.xlogin.id     // pubkey (nostr) or webId (solid)
 
+// Unified authenticated fetch — works with both protocols
+// Nostr: sends NIP-98 Authorization header
+// Solid: sends DPoP Authorization header
+const res = await window.xlogin.authFetch('https://example.com/api/data')
+
 // Programmatic
 window.xlogin.login()   // open modal
 window.xlogin.logout()  // log out
@@ -125,7 +130,8 @@ document.addEventListener('xlogout', () => {
 ## Features
 
 - **Zero build** — single script, no bundler required
-- **Two protocols** — Nostr (NIP-07) and Solid (OIDC) in one widget
+- **Two protocols** — Nostr (NIP-07 + NIP-98) and Solid (OIDC + DPoP) in one widget
+- **Unified authFetch** — one API for authenticated requests, regardless of protocol
 - **Shadow DOM** — styles are fully encapsulated
 - **Session persistence** — Nostr via localStorage, Solid via IndexedDB
 - **Auto restore** — sessions survive page reloads
@@ -138,6 +144,7 @@ document.addEventListener('xlogout', () => {
 Loaded dynamically from CDN at runtime (zero install required):
 
 - [solid-oidc](https://www.npmjs.com/package/solid-oidc) — Solid-OIDC authentication
+- [nip98](https://www.npmjs.com/package/nip98) — NIP-98 HTTP Auth for Nostr
 - [@noble/secp256k1](https://www.npmjs.com/package/@noble/secp256k1) — Nostr cryptography
 
 ## License

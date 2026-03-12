@@ -49,7 +49,7 @@
   <div class="actions">
     <button id="whoami">whoami()</button>
     <button id="nostr-pub">nostr.getPublicKey()</button>
-    <button id="solid-profile">solid.fetchProfile()</button>
+    <button id="authfetch">authFetch(id)</button>
     <button id="clear">Clear</button>
   </div>
 
@@ -83,14 +83,15 @@
       }
     }
 
-    document.getElementById('solid-profile').onclick = async function () {
-      if (!window.solid || !window.solid.session || !window.solid.session.isActive) {
-        log('Not logged in via Solid')
+    document.getElementById('authfetch').onclick = async function () {
+      if (!window.xlogin || !window.xlogin.id) {
+        log('Not logged in')
         return
       }
       try {
-        var res = await window.solid.session.authFetch(window.solid.webId)
-        log('profile:\n' + (await res.text()).slice(0, 1000))
+        var url = window.xlogin.type === 'solid' ? window.solid.webId : 'https://httpbin.org/headers'
+        var res = await window.xlogin.authFetch(url)
+        log('authFetch(' + url + '):\n' + (await res.text()).slice(0, 1000))
       } catch (e) {
         log('error: ' + e.message)
       }
