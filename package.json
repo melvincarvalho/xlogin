@@ -1,6 +1,6 @@
 {
   "name": "xlogin",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Universal login widget for Nostr and Solid",
   "main": "xlogin.js",
   "skill": "SKILL.md",
