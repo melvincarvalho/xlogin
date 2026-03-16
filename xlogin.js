@@ -272,7 +272,7 @@
     '.xl-guest:hover{background:#66666620}',
     '.xl-sep{text-align:center;color:#666;font-size:12px;margin:12px 0}',
     '.xl-modal input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #333;border-radius:8px;background:#0d0d1a;color:#e0e0e0;font:13px system-ui,sans-serif;margin-bottom:8px}',
-    '.xl-modal input[type=password]{font:13px monospace}',
+    '.xl-modal .xl-nostr-key{font:13px monospace}',
     '.xl-modal input:focus{outline:none;border-color:#8B5CF6}',
     '.xl-error{color:#ef4444;font-size:12px;margin-bottom:8px;min-height:16px}',
     '.xl-actions{display:flex;gap:8px;justify-content:flex-end}',
@@ -340,7 +340,7 @@
           nostrExtBtn +
           nostrGuestBtn +
           nostrSep +
-          '<input type="password" class="xl-nostr-key" placeholder="64-char hex private key" maxlength="64" spellcheck="false" autocomplete="off">' +
+          '<input type="text" class="xl-nostr-key" placeholder="64-char hex private key" maxlength="64" spellcheck="false" autocomplete="off" style="-webkit-text-security:disc">' +
           '<div class="xl-error xl-nostr-error"></div>' +
           '<div class="xl-actions">' +
             '<button class="xl-cancel">Cancel</button>' +
