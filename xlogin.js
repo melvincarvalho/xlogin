@@ -318,6 +318,7 @@
     var nostrSep = (_ext || _guestKey) ? '<div class="xl-sep">or paste a private key</div>' : ''
 
     var solidProviders = [
+      { name: window.location.host, url: window.location.origin },
       { name: 'solidcommunity.net', url: 'https://solidcommunity.net' },
       { name: 'solidweb.me', url: 'https://solidweb.me' },
       { name: 'solidweb.org', url: 'https://solidweb.org' },
