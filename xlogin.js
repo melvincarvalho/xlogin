@@ -322,6 +322,7 @@
       { name: 'solidcommunity.net', url: 'https://solidcommunity.net' },
       { name: 'solidweb.me', url: 'https://solidweb.me' },
       { name: 'solidweb.org', url: 'https://solidweb.org' },
+      { name: 'solidweb.app', url: 'https://solidweb.app' },
       { name: 'solid.social', url: 'https://solid.social' }
     ]
     var solidBtns = solidProviders.map(function (p) {
