@@ -54,8 +54,26 @@
   _ext = window.nostr || null
 
   // --- Dynamic imports ---
-  var _secpReady = import('https://esm.sh/@noble/secp256k1@1.7.1').then(function (mod) {
+  var _secpReady = import('https://esm.sh/@noble/secp256k1@1.7.1').then(async function (mod) {
     _secp = mod
+    // @noble/secp256k1@1.7.x's async sha256 always reaches into
+    // `crypto.subtle.digest`, which is undefined on non-secure
+    // contexts (plain-HTTP LAN/IP). Install a sync sha256 backed by
+    // @noble/hashes and route signing through `schnorr.signSync` so
+    // the async path (and crypto.subtle dependency) is never taken.
+    // See #10 for the call chain that surfaced this.
+    await loadHashesOnce()
+    _secp.utils.sha256Sync = function (...messages) {
+      var total = 0
+      for (var i = 0; i < messages.length; i++) total += messages[i].length
+      var buf = new Uint8Array(total)
+      var off = 0
+      for (var j = 0; j < messages.length; j++) {
+        buf.set(messages[j], off)
+        off += messages[j].length
+      }
+      return _nobleSha256(buf)
+    }
   })
 
   var _SolidSession = null
@@ -131,10 +149,14 @@
     return bytesToHex(await sha256(new TextEncoder().encode(ser)))
   }
   async function nostrSignEvent(event) {
+    // _secpReady installs `_secp.utils.sha256Sync`; signSync then
+    // never touches `crypto.subtle` and works on non-secure contexts
+    // (#10). Awaiting _secpReady guarantees the sync hash is set
+    // before signSync runs.
     await _secpReady
     var ev = Object.assign({}, event, { pubkey: _nostrPubKey })
     ev.id = await computeEventId(ev)
-    var sig = await _secp.schnorr.sign(ev.id, _nostrPrivKey)
+    var sig = _secp.schnorr.signSync(ev.id, _nostrPrivKey)
     ev.sig = bytesToHex(sig)
     return ev
   }
