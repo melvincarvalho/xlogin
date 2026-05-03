@@ -649,24 +649,29 @@
 
   // --- Init ---
   async function init() {
-    getUI()
+    // Wrap in try/finally so `window.xlogin.ready` always settles —
+    // any unexpected throw inside (beyond the known catches below)
+    // would otherwise leave consumers awaiting it forever (#14).
+    try {
+      getUI()
 
-    // 1. Solid redirect callback
-    var wasRedirect = await handleSolidRedirect().catch(function () { return false })
+      // 1. Solid redirect callback
+      var wasRedirect = await handleSolidRedirect().catch(function () { return false })
 
-    if (!wasRedirect) {
-      // 2. Try Nostr restore (await the async nip-07 tail too)
-      await tryNostrRestore()
+      if (!wasRedirect) {
+        // 2. Try Nostr restore (await the async nip-07 tail too)
+        await tryNostrRestore()
 
-      // 3. Try Solid restore if not already logged in via Nostr
-      if (!_type) {
-        await trySolidRestore().catch(function () {})
+        // 3. Try Solid restore if not already logged in via Nostr
+        if (!_type) {
+          await trySolidRestore().catch(function () {})
+        }
       }
+    } finally {
+      // Tell consumers (e.g., LOSOS shell) that restore has settled
+      // — success, no-session, or unexpected throw. See #13.
+      _readyResolve()
     }
-
-    // Tell consumers (e.g., LOSOS shell) that restore has settled
-    // — success or no-session. See #13.
-    _readyResolve()
   }
 
   if (document.readyState === 'loading') {
