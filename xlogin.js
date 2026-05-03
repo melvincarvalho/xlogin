@@ -75,6 +75,13 @@
   function loadHashesOnce() {
     if (!_hashesReady) {
       _hashesReady = import('https://esm.sh/@noble/hashes@1.4.0/sha256').then(function (mod) {
+        // Validate the import resolved to the shape we expect — if esm.sh
+        // ever changes how it re-exports @noble/hashes/sha256 we want a
+        // clear error from this Promise rejection rather than the opaque
+        // `TypeError: _nobleSha256 is not a function` later in sha256().
+        if (typeof mod.sha256 !== 'function') {
+          throw new Error('xlogin: @noble/hashes/sha256 import did not expose a `sha256` function (export shape changed)')
+        }
         _nobleSha256 = mod.sha256
       })
     }
