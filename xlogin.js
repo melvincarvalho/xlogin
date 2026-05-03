@@ -68,6 +68,19 @@
     _nip98AuthFetch = mod.authFetch
   })
 
+  // Pure-JS SHA-256 fallback for non-secure contexts (plain-HTTP LAN/IP),
+  // where window.crypto.subtle is undefined (#8). Loaded only when needed.
+  var _nobleSha256 = null
+  var _hashesReady = null
+  function loadHashesOnce() {
+    if (!_hashesReady) {
+      _hashesReady = import('https://esm.sh/@noble/hashes@1.4.0/sha256').then(function (mod) {
+        _nobleSha256 = mod.sha256
+      })
+    }
+    return _hashesReady
+  }
+
   // --- localStorage (Nostr accounts, compatible with nip07/Jumble) ---
   function loadAccounts() {
     try { return JSON.parse(localStorage.getItem('accounts')) || [] } catch (e) { return [] }
@@ -93,7 +106,16 @@
     return Array.from(bytes, function (b) { return b.toString(16).padStart(2, '0') }).join('')
   }
   async function sha256(msg) {
-    return new Uint8Array(await crypto.subtle.digest('SHA-256', msg))
+    // crypto.subtle is exposed only in secure contexts (HTTPS or
+    // localhost). On plain-HTTP LAN/IP origins (e.g.
+    // http://192.168.0.10:4443/) it is undefined, which would throw
+    // "Cannot read properties of undefined (reading 'digest')". Fall
+    // back to a pure-JS SHA-256 there. See #8.
+    if (globalThis.crypto && globalThis.crypto.subtle) {
+      return new Uint8Array(await crypto.subtle.digest('SHA-256', msg))
+    }
+    await loadHashesOnce()
+    return _nobleSha256(msg)
   }
 
   // --- NIP-01 ---
