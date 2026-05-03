@@ -571,18 +571,22 @@
   }
 
   // --- Nostr session restore ---
+  // Returns a Promise so the caller can await the async nip-07
+  // polling tail (#13). All other paths resolve synchronously.
   function tryNostrRestore() {
     var restored = loadCurrentAccount()
-    if (!restored) return
+    if (!restored) return Promise.resolve()
     if ((restored.signerType === 'key' || restored.signerType === 'guest') && restored.privkey) {
       _nostrPrivKey = restored.privkey
       _nostrPubKey = restored.pubkey
       _nostrProvider = restored.signerType
       var ui = getUI()
       if (ui && ui.btn) onLogin('nostr', restored.pubkey, ui.btn)
-    } else if (restored.signerType === 'nip-07') {
+      return Promise.resolve()
+    }
+    if (restored.signerType === 'nip-07') {
       _nostrPubKey = restored.pubkey
-      ;(async function () {
+      return (async function () {
         for (var i = 0; i < 50; i++) {
           if (_ext) {
             _nostrProvider = 'extension'
@@ -596,6 +600,7 @@
         saveCurrentAccount(null)
       })()
     }
+    return Promise.resolve()
   }
 
   function getUI() {
@@ -619,6 +624,11 @@
   window.xlogin.id = null
   window.xlogin.login = function () { showModal() }
   window.xlogin.logout = function () { onLogout(getUI().btn) }
+  // Resolves when init() has finished restoring (or settled on no
+  // session). Lets consumers `await window.xlogin.ready` instead of
+  // polling `window.xlogin.type` with a timeout. See #13.
+  var _readyResolve
+  window.xlogin.ready = new Promise(function (r) { _readyResolve = r })
 
   /**
    * Unified authenticated fetch.
@@ -639,19 +649,28 @@
 
   // --- Init ---
   async function init() {
-    getUI()
+    // Wrap in try/finally so `window.xlogin.ready` always settles —
+    // any unexpected throw inside (beyond the known catches below)
+    // would otherwise leave consumers awaiting it forever (#14).
+    try {
+      getUI()
 
-    // 1. Solid redirect callback
-    var wasRedirect = await handleSolidRedirect().catch(function () { return false })
+      // 1. Solid redirect callback
+      var wasRedirect = await handleSolidRedirect().catch(function () { return false })
 
-    if (!wasRedirect) {
-      // 2. Try Nostr restore (synchronous / fast)
-      tryNostrRestore()
+      if (!wasRedirect) {
+        // 2. Try Nostr restore (await the async nip-07 tail too)
+        await tryNostrRestore()
 
-      // 3. Try Solid restore if not already logged in via Nostr
-      if (!_type) {
-        trySolidRestore().catch(function () {})
+        // 3. Try Solid restore if not already logged in via Nostr
+        if (!_type) {
+          await trySolidRestore().catch(function () {})
+        }
       }
+    } finally {
+      // Tell consumers (e.g., LOSOS shell) that restore has settled
+      // — success, no-session, or unexpected throw. See #13.
+      _readyResolve()
     }
   }
 
