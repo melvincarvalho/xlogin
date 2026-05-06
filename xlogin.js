@@ -332,7 +332,10 @@
     '.xl-cancel:hover{background:#444}',
     '.xl-submit{background:#8B5CF6;color:#fff}',
     '.xl-submit:hover{background:#7C3AED}',
-    '.xl-submit:disabled{opacity:.5;cursor:not-allowed}'
+    '.xl-submit:disabled{opacity:.5;cursor:not-allowed}',
+    '.xl-signup{text-align:center;font-size:12px;color:#666;margin-top:12px}',
+    '.xl-signup a{color:#8B5CF6;text-decoration:none}',
+    '.xl-signup a:hover{text-decoration:underline}'
   ].join('')
 
   function createWidget() {
@@ -409,6 +412,7 @@
             '<button class="xl-cancel">Cancel</button>' +
             '<button class="xl-submit xl-solid-submit">Login</button>' +
           '</div>' +
+          '<div class="xl-signup">No pod yet? <a href="https://solidweb.app/" target="_blank" rel="noopener">Sign up</a></div>' +
         '</div>' +
       '</div>'
     shadow.appendChild(overlay)
