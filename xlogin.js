@@ -385,7 +385,7 @@
         hint.appendChild(idEl)
         shadow.appendChild(hint)
       }
-    } catch (_) { /* malformed URL — ignore */ }
+    } catch (_) { /* missing URLSearchParams or unexpected runtime — skip the hint, don't break login */ }
 
     // --- Overlay ---
     var overlay = document.createElement('div')
