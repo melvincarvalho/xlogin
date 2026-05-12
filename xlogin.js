@@ -716,10 +716,25 @@
             if (hint) {
               var ui = getUI()
               if (ui && ui.btn) {
-                try {
-                  var pubkey = await _ext.getPublicKey()
+                // Fire-and-forget — do NOT await the signer prompt.
+                // The signer's getPublicKey() may block indefinitely
+                // while waiting for user approval (especially on
+                // extensions that show a popup), which would in turn
+                // delay window.xlogin.ready (the whole point of #14
+                // was to settle ready promptly regardless of pending
+                // user interaction). Consumers see ready resolve as
+                // "no session yet"; nostrLoginSuccess fires its own
+                // state-change event when/if the signer approves
+                // later, so async consumers still see the eventual
+                // login.
+                _ext.getPublicKey().then(function (pubkey) {
+                  // Mirror the manual extBtn.click() path: hide the
+                  // modal first so it doesn't stay open in the corner
+                  // case where the user opened it during the brief
+                  // auto-trigger window.
+                  hideModal()
                   nostrLoginSuccess(ui.btn, pubkey, 'extension')
-                } catch (_) { /* signer declined or unavailable — fall through to manual login */ }
+                }).catch(function () { /* signer declined or unavailable — fall through to manual login */ })
               }
             }
           } catch (_) { /* missing URLSearchParams or unexpected runtime — no-op */ }
