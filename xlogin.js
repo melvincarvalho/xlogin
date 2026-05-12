@@ -671,29 +671,30 @@
           await trySolidRestore().catch(function () {})
         }
 
-        // 4. Phase 2b SSO-arrival auto-trigger. When a Solid app (e.g.
-        // jss.live/sso/) redirects the user to their pod with a
-        // ?webid= hint AND no prior session restored, AND a signer
-        // extension is present, automatically run the same
-        // getPublicKey() + nostrLoginSuccess() pair the
-        // "Use Browser Extension" button click runs. Saves the
-        // user a click; the signer extension is still in charge of
-        // approval (popup or pre-approved silent). The pubkey
-        // returned by the signer wins — the hint is a "should we
-        // try this" signal, not a credential.
-        if (!_type && _ext) {
-          try {
-            var hint = new URLSearchParams(window.location.search).get('webid')
-            if (hint) {
-              // Phase 2c: scrub `?webid=` now that we've consumed it.
-              // Keeps refresh / bookmark / share clean. Other query
-              // params (if any) are preserved.
-              try {
-                var clean = new URL(window.location.href)
-                clean.searchParams.delete('webid')
-                history.replaceState(null, '', clean.pathname + clean.search + clean.hash)
-              } catch (_) { /* history API unavailable — harmless, skip */ }
+        // 4. SSO-arrival handling. When a Solid app (e.g. jss.live/sso/)
+        // redirects the user to their pod with a ?webid= hint, xlogin
+        // owns that param — clean it from the URL on sight (phase 2c),
+        // and if no prior session restored AND a signer extension is
+        // present, auto-run the same getPublicKey + nostrLoginSuccess
+        // pair the "Use Browser Extension" button click runs (phase
+        // 2b). Saves the user a click; the signer is still in charge
+        // of approval. The pubkey returned by the signer wins — the
+        // hint is a "should we try this" signal, not a credential.
+        try {
+          var hint = new URLSearchParams(window.location.search).get('webid')
+          if (hint) {
+            // Phase 2c: scrub `?webid=` whether or not we can act on
+            // it (session already restored, no extension, etc.).
+            // Keeps refresh / bookmark / share clean. Other query
+            // params (if any) are preserved.
+            try {
+              var clean = new URL(window.location.href)
+              clean.searchParams.delete('webid')
+              history.replaceState(null, '', clean.pathname + clean.search + clean.hash)
+            } catch (_) { /* history API unavailable — harmless, skip */ }
 
+            // Phase 2b auto-trigger keeps its original guards.
+            if (!_type && _ext) {
               var ui = getUI()
               if (ui && ui.btn) {
                 // Fire-and-forget — do NOT await the signer prompt.
@@ -717,8 +718,8 @@
                 }).catch(function () { /* signer declined or unavailable — fall through to manual login */ })
               }
             }
-          } catch (_) { /* missing URLSearchParams or unexpected runtime — no-op */ }
-        }
+          }
+        } catch (_) { /* missing URLSearchParams or unexpected runtime — no-op */ }
       }
     } finally {
       // Tell consumers (e.g., LOSOS shell) that restore has settled
