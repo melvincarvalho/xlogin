@@ -699,6 +699,46 @@
         if (!_type) {
           await trySolidRestore().catch(function () {})
         }
+
+        // 4. Phase 2b SSO-arrival auto-trigger. When a Solid app (e.g.
+        // jss.live/sso/) redirects the user to their pod with a
+        // ?webid= hint AND no prior session restored, AND a signer
+        // extension is present, automatically run the same
+        // getPublicKey() + nostrLoginSuccess() pair the
+        // "Use Browser Extension" button click runs. Saves the
+        // user a click; the signer extension is still in charge of
+        // approval (popup or pre-approved silent). The pubkey
+        // returned by the signer wins — the hint is a "should we
+        // try this" signal, not a credential.
+        if (!_type && _ext) {
+          try {
+            var hint = new URLSearchParams(window.location.search).get('webid')
+            if (hint) {
+              var ui = getUI()
+              if (ui && ui.btn) {
+                // Fire-and-forget — do NOT await the signer prompt.
+                // The signer's getPublicKey() may block indefinitely
+                // while waiting for user approval (especially on
+                // extensions that show a popup), which would in turn
+                // delay window.xlogin.ready (the whole point of #14
+                // was to settle ready promptly regardless of pending
+                // user interaction). Consumers see ready resolve as
+                // "no session yet"; nostrLoginSuccess fires its own
+                // state-change event when/if the signer approves
+                // later, so async consumers still see the eventual
+                // login.
+                _ext.getPublicKey().then(function (pubkey) {
+                  // Mirror the manual extBtn.click() path: hide the
+                  // modal first so it doesn't stay open in the corner
+                  // case where the user opened it during the brief
+                  // auto-trigger window.
+                  hideModal()
+                  nostrLoginSuccess(ui.btn, pubkey, 'extension')
+                }).catch(function () { /* signer declined or unavailable — fall through to manual login */ })
+              }
+            }
+          } catch (_) { /* missing URLSearchParams or unexpected runtime — no-op */ }
+        }
       }
     } finally {
       // Tell consumers (e.g., LOSOS shell) that restore has settled
