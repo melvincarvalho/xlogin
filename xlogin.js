@@ -304,13 +304,6 @@
   var CSS = [
     '.xl-btn{position:fixed;bottom:16px;right:16px;z-index:999999;background:#8B5CF6;color:#fff;border:none;border-radius:20px;padding:8px 16px;font:14px/1.4 system-ui,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:background .2s}',
     '.xl-btn:hover{background:#7C3AED}',
-    // Phase 2a SSO-arrival hint: when a ?webid= URL param is present
-    // (typically set by jss.live/sso/ after resolving the user's
-    // identity), show the proposed identity as a small caption above
-    // the login button. PoC-only — purely informational at this
-    // stage, doesn't change click behavior.
-    '.xl-suggestion{position:fixed;bottom:60px;right:16px;z-index:999999;max-width:300px;background:#1a1a2e;color:#e0e0e0;border:1px solid #8B5CF6;border-radius:8px;padding:8px 12px;font:12px/1.4 system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.2);word-break:break-all}',
-    '.xl-suggestion strong{color:#8B5CF6}',
     '.xl-overlay{display:none;position:fixed;inset:0;z-index:1000000;background:rgba(0,0,0,.5);align-items:center;justify-content:center}',
     '.xl-overlay.active{display:flex}',
     '.xl-modal{background:#1a1a2e;color:#e0e0e0;border-radius:12px;padding:24px;width:380px;max-width:90vw;font:14px/1.4 system-ui,sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.4)}',
@@ -364,28 +357,6 @@
       else showModal()
     }
     shadow.appendChild(btn)
-
-    // --- Phase 2a: SSO-arrival hint ---
-    // If a ?webid= query param is present (set by jss.live/sso/
-    // after resolving the user's Nostr identity), display it as
-    // a caption above the login button. Doesn't change click
-    // behavior — purely informational while we confirm the
-    // SSO → pod handoff works end-to-end. Phase 2b will use
-    // this to auto-trigger the appropriate login provider.
-    try {
-      var ssoWebId = new URLSearchParams(window.location.search).get('webid')
-      if (ssoWebId) {
-        var hint = document.createElement('div')
-        hint.className = 'xl-suggestion'
-        var label = document.createElement('div')
-        label.textContent = 'Sign in as:'
-        var idEl = document.createElement('strong')
-        idEl.textContent = ssoWebId
-        hint.appendChild(label)
-        hint.appendChild(idEl)
-        shadow.appendChild(hint)
-      }
-    } catch (_) { /* missing URLSearchParams or unexpected runtime — skip the hint, don't break login */ }
 
     // --- Overlay ---
     var overlay = document.createElement('div')
@@ -714,6 +685,15 @@
           try {
             var hint = new URLSearchParams(window.location.search).get('webid')
             if (hint) {
+              // Phase 2c: scrub `?webid=` now that we've consumed it.
+              // Keeps refresh / bookmark / share clean. Other query
+              // params (if any) are preserved.
+              try {
+                var clean = new URL(window.location.href)
+                clean.searchParams.delete('webid')
+                history.replaceState(null, '', clean.pathname + clean.search + clean.hash)
+              } catch (_) { /* history API unavailable — harmless, skip */ }
+
               var ui = getUI()
               if (ui && ui.btn) {
                 // Fire-and-forget — do NOT await the signer prompt.
