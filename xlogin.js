@@ -690,7 +690,7 @@
             try {
               var clean = new URL(window.location.href)
               clean.searchParams.delete('webid')
-              history.replaceState(null, '', clean.pathname + clean.search + clean.hash)
+              history.replaceState(null, '', clean.href)
             } catch (_) { /* history API unavailable — harmless, skip */ }
 
             // Phase 2b auto-trigger keeps its original guards.
