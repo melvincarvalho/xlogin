@@ -77,7 +77,7 @@
   })
 
   var _SolidSession = null
-  var _solidReady = import('https://esm.sh/solid-oidc@0.0.8').then(function (mod) {
+  var _solidReady = import('https://esm.sh/solid-oidc@0.0.9').then(function (mod) {
     _SolidSession = mod.Session || mod.default
   })
 
