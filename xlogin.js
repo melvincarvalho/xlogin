@@ -641,6 +641,11 @@
    * - Not logged in → plain fetch
    */
   window.xlogin.authFetch = async function (url, options) {
+    // Auth proofs bind to the absolute request URI (DPoP `htu`, NIP-98 `u`), and the underlying
+    // libs build it via `new URL(url)` — which, unlike fetch, does NOT default to the document
+    // base, so a relative string throws "Invalid URL". Resolve it the way fetch would, keeping
+    // authFetch a true drop-in for fetch (#25). A Request object is already absolute, so skip it.
+    if (typeof url === 'string') url = new URL(url, document.baseURI).href
     if (_type === 'nostr') {
       await _nip98Ready
       return _nip98AuthFetch(url, options)
