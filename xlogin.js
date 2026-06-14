@@ -640,6 +640,7 @@
     if (_type) onLogout(btn)                      // clear any existing session first (avoid mixed Nostr/Solid state)
     _nostrPrivKey = privkey
     var pubkey = bytesToHex(_secp.schnorr.getPublicKey(privkey))
+    hideModal()                                  // close the modal if it happens to be open (matches guest/key flows)
     nostrLoginSuccess(btn, pubkey, 'guest')
     return pubkey
   }
