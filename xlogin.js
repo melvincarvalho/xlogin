@@ -628,6 +628,25 @@
   window.xlogin.id = null
   window.xlogin.login = function () { showModal() }
   window.xlogin.logout = function () { onLogout(getUI().btn) }
+  // Log in directly with a Nostr private key (64-hex) — no modal. For "key in a link"
+  // onboarding: read the key from the URL and call this. Persists as a guest session
+  // (localStorage), identical to the modal's "Continue as Guest". Returns the pubkey.
+  // SECURITY: the key is stored in localStorage; in the link pattern it is a BEARER
+  // credential (anyone with the link IS the account). Use the URL #fragment so it never
+  // reaches the server, and only for low-stakes / onboarding keys.
+  window.xlogin.guestLogin = async function (privkey) {
+    privkey = String(privkey || '').trim().toLowerCase()
+    if (!/^[0-9a-f]{64}$/.test(privkey)) throw new Error('guestLogin: 64-hex private key required')
+    await _secpReady
+    var ui = getUI()
+    var btn = ui && ui.btn                       // getUI() is null before document.body; onLogin/onLogout guard btn
+    if (_type) onLogout(btn)                      // clear any existing session first (avoid mixed Nostr/Solid state)
+    _nostrPrivKey = privkey
+    var pubkey = bytesToHex(_secp.schnorr.getPublicKey(privkey))
+    hideModal()                                  // close the modal if it happens to be open (matches guest/key flows)
+    nostrLoginSuccess(btn, pubkey, 'guest')
+    return pubkey
+  }
   // Resolves when init() has finished restoring (or settled on no
   // session). Lets consumers `await window.xlogin.ready` instead of
   // polling `window.xlogin.type` with a timeout. See #13.
