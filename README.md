@@ -58,6 +58,8 @@ window.xlogin.logout()           // log out
 await window.xlogin.guestLogin(privkey)  // log in with a 64-hex Nostr key, no modal (key-in-a-link)
 ```
 
+> ⚠️ **`guestLogin` persists the private key to localStorage.** A key carried in a link is a **bearer credential** — anyone with the link controls the account. Put it in the URL **#fragment** (never sent to the server) and use it only for low-stakes / onboarding keys.
+
 ### Nostr (NIP-07 compatible)
 
 After Nostr login, `window.nostr` is fully functional:

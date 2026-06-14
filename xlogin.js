@@ -631,8 +631,11 @@
   // Log in directly with a Nostr private key (64-hex) — no modal. For "key in a link"
   // onboarding: read the key from the URL and call this. Persists as a guest session
   // (localStorage), identical to the modal's "Continue as Guest". Returns the pubkey.
+  // SECURITY: the key is stored in localStorage; in the link pattern it is a BEARER
+  // credential (anyone with the link IS the account). Use the URL #fragment so it never
+  // reaches the server, and only for low-stakes / onboarding keys.
   window.xlogin.guestLogin = async function (privkey) {
-    privkey = (privkey || '').trim().toLowerCase()
+    privkey = String(privkey || '').trim().toLowerCase()
     if (!/^[0-9a-f]{64}$/.test(privkey)) throw new Error('guestLogin: 64-hex private key required')
     await _secpReady
     var ui = getUI()
