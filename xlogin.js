@@ -635,9 +635,12 @@
     privkey = (privkey || '').trim().toLowerCase()
     if (!/^[0-9a-f]{64}$/.test(privkey)) throw new Error('guestLogin: 64-hex private key required')
     await _secpReady
+    var ui = getUI()
+    var btn = ui && ui.btn                       // getUI() is null before document.body; onLogin/onLogout guard btn
+    if (_type) onLogout(btn)                      // clear any existing session first (avoid mixed Nostr/Solid state)
     _nostrPrivKey = privkey
     var pubkey = bytesToHex(_secp.schnorr.getPublicKey(privkey))
-    nostrLoginSuccess(getUI().btn, pubkey, 'guest')
+    nostrLoginSuccess(btn, pubkey, 'guest')
     return pubkey
   }
   // Resolves when init() has finished restoring (or settled on no
