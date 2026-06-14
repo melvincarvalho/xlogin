@@ -41,6 +41,7 @@ npm install xlogin
 | `window.xlogin.id` | pubkey (nostr) or webId (solid) or `null` |
 | `window.xlogin.login()` | Open the login modal |
 | `window.xlogin.logout()` | Log out and clear session |
+| `window.xlogin.guestLogin(privkey)` | Log in directly with a 64-hex Nostr key, no modal (for key-in-a-link onboarding); persists as a guest session. Returns the pubkey. |
 | `window.xlogin.authFetch(url, options)` | Authenticated fetch (NIP-98 for Nostr, DPoP for Solid, plain fetch if not logged in) |
 
 ### Protocol-Specific Globals

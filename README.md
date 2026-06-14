@@ -53,8 +53,9 @@ window.xlogin.id     // pubkey (nostr) or webId (solid)
 const res = await window.xlogin.authFetch('https://example.com/api/data')
 
 // Programmatic
-window.xlogin.login()   // open modal
-window.xlogin.logout()  // log out
+window.xlogin.login()            // open modal
+window.xlogin.logout()           // log out
+await window.xlogin.guestLogin(privkey)  // log in with a 64-hex Nostr key, no modal (key-in-a-link)
 ```
 
 ### Nostr (NIP-07 compatible)
