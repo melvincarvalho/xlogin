@@ -36,7 +36,7 @@ npm install xlogin
 1. User clicks the **Login** button
 2. A tabbed modal appears with **Nostr** and **Solid** tabs
 3. **Nostr tab**: browser extension, guest key, or paste a private key
-4. **Solid tab**: quick-select providers (solidcommunity.net, solidweb.me, solidweb.org, solid.social) or custom IDP
+4. **Solid tab**: quick-select providers (solidcommunity.net, solidweb.me, solidweb.org, solidweb.app, solid.social) or custom IDP
 5. After login, the button shows the user's identity
 6. Click the button again to **logout**
 
@@ -128,6 +128,7 @@ document.addEventListener('xlogout', () => {
 - [solidcommunity.net](https://solidcommunity.net)
 - [solidweb.me](https://solidweb.me)
 - [solidweb.org](https://solidweb.org)
+- [solidweb.app](https://solidweb.app)
 - [solid.social](https://solid.social)
 
 ## Features
